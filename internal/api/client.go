@@ -71,7 +71,7 @@ func NewClient(authDataPath string) (*Client, error) {
 	}
 
 	c := &Client{
-		HTTPClient:      &http.Client{Timeout: 30 * time.Second},
+		HTTPClient:      &http.Client{},
 		AuthData:        &AuthData{},
 		AuthDataPath:    authDataPath,
 		Locale:          locale,

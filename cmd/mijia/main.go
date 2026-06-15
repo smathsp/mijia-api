@@ -169,6 +169,21 @@ func handleLogin(authPath string) {
 
 	fmt.Println("请用米家 APP 扫描登录：")
 	fmt.Println(qrLink)
+	fmt.Println("")
+	fmt.Println("扫码完成后按回车键继续...")
+
+	// Wait for user to scan
+	var input string
+	fmt.Scanln(&input)
+
+	// Complete the login
+	_, err = client.PollLogin()
+	if err != nil {
+		fmt.Printf("登录失败: %v\n", err)
+		return
+	}
+
+	fmt.Println("登录成功！")
 }
 
 func handleListDevices(api *api.Client, verbose bool) map[string]map[string]interface{} {

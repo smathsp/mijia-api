@@ -359,7 +359,10 @@ func (c *Client) getLocation() (map[string]string, error) {
 }
 
 func (c *Client) doGet(rawURL string, headers map[string]string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", rawURL, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
 	if err != nil {
 		return nil, err
 	}
