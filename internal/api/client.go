@@ -1,9 +1,10 @@
 package api
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -233,7 +234,8 @@ func randomHex(n int) string {
 	const hex = "0123456789abcdef"
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = hex[rand.Intn(len(hex))]
+		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(hex))))
+		b[i] = hex[idx.Int64()]
 	}
 	return string(b)
 }
@@ -242,7 +244,8 @@ func randomHexUpper(n int) string {
 	const hex = "0123456789ABCDEF"
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = hex[rand.Intn(len(hex))]
+		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(hex))))
+		b[i] = hex[idx.Int64()]
 	}
 	return string(b)
 }
@@ -251,7 +254,8 @@ func randomAlphanum(n int) string {
 	const chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = chars[rand.Intn(len(chars))]
+		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(chars))))
+		b[i] = chars[idx.Int64()]
 	}
 	return string(b)
 }

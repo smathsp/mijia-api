@@ -16,6 +16,9 @@ import (
 
 const deviceURL = "https://home.miot-spec.com/spec/"
 
+// Regex for extracting JSON from HTML script tag (compiled once)
+var scriptRegex = regexp.MustCompile(`<script data-page="app" type="application/json">(.*?)</script>`)
+
 // DeviceInfo holds parsed device specification.
 type DeviceInfo struct {
 	Name       string       `json:"name"`
@@ -87,8 +90,7 @@ func GetDeviceInfo(model string, cachePath string) (*DeviceInfo, error) {
 	}
 
 	// Extract JSON from HTML script tag
-	re := regexp.MustCompile(`<script data-page="app" type="application/json">(.*?)</script>`)
-	matches := re.FindSubmatch(body)
+	matches := scriptRegex.FindSubmatch(body)
 	if matches == nil {
 		return nil, &errors.GetDeviceInfoError{Model: model}
 	}
@@ -135,7 +137,11 @@ func GetDeviceInfo(model string, cachePath string) (*DeviceInfo, error) {
 			continue
 		}
 
-		siid := int(svcMap["iid"].(float64))
+		siidFloat, ok := svcMap["iid"].(float64)
+		if !ok {
+			continue
+		}
+		siid := int(siidFloat)
 		svcType, _ := svcMap["type"].(string)
 
 		// Process properties
@@ -146,8 +152,13 @@ func GetDeviceInfo(model string, cachePath string) (*DeviceInfo, error) {
 					continue
 				}
 
-				piid := int(propMap["iid"].(float64))
-				propType := normalizeType(propMap["format"].(string))
+				piidFloat, ok := propMap["iid"].(float64)
+				if !ok {
+					continue
+				}
+				piid := int(piidFloat)
+				propFormat, _ := propMap["format"].(string)
+				propType := normalizeType(propFormat)
 
 				// Build rw string
 				access, _ := propMap["access"].([]interface{})
@@ -236,7 +247,11 @@ func GetDeviceInfo(model string, cachePath string) (*DeviceInfo, error) {
 					continue
 				}
 
-				aiid := int(actMap["iid"].(float64))
+				aiidFloat, ok := actMap["iid"].(float64)
+				if !ok {
+					continue
+				}
+				aiid := int(aiidFloat)
 
 				i18nKey := fmt.Sprintf("service:%03d:action:%03d", siid, aiid)
 				zhDesc, _ := i18nZh[i18nKey].(string)

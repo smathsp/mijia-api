@@ -42,23 +42,29 @@ func EncSignature(uri, method, signedNonce string, params map[string]string) str
 // 3. Add signature = EncSignature(encrypted params)
 // 4. Add ssecurity and _nonce
 func GenerateEncParams(uri, method, signedNonce, nonce string, params map[string]string, ssecurity string) map[string]string {
+	// Create a copy to avoid mutating the original map
+	result := make(map[string]string, len(params)+4)
+	for k, v := range params {
+		result[k] = v
+	}
+
 	// Step 1: Compute signature of plaintext params
-	params["rc4_hash__"] = EncSignature(uri, method, signedNonce, params)
+	result["rc4_hash__"] = EncSignature(uri, method, signedNonce, result)
 
 	// Step 2: RC4-encrypt all values
-	for k, v := range params {
+	for k, v := range result {
 		encrypted, err := EncryptRC4(signedNonce, v)
 		if err != nil {
 			// Fallback: keep original value (should not happen in practice)
 			continue
 		}
-		params[k] = encrypted
+		result[k] = encrypted
 	}
 
 	// Step 3: Add signature of encrypted params + ssecurity + nonce
-	params["signature"] = EncSignature(uri, method, signedNonce, params)
-	params["ssecurity"] = ssecurity
-	params["_nonce"] = nonce
+	result["signature"] = EncSignature(uri, method, signedNonce, result)
+	result["ssecurity"] = ssecurity
+	result["_nonce"] = nonce
 
-	return params
+	return result
 }

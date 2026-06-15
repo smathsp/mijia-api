@@ -6,6 +6,7 @@ import (
 	"crypto/rc4"
 	"encoding/base64"
 	"io"
+	"unicode/utf8"
 )
 
 // EncryptRC4 encrypts a plaintext string using RC4 with drop-1024.
@@ -85,28 +86,9 @@ func Decrypt(ssecurity, nonce, payload string) (string, error) {
 }
 
 func utf8Decode(data []byte) (string, error) {
-	// Simple UTF-8 validation: check if all bytes are valid UTF-8
-	for i := 0; i < len(data); {
-		if data[i] <= 0x7F {
-			i++
-		} else if data[i] >= 0xC0 && data[i] <= 0xDF {
-			if i+1 >= len(data) || data[i+1] < 0x80 || data[i+1] > 0xBF {
-				return "", io.ErrUnexpectedEOF
-			}
-			i += 2
-		} else if data[i] >= 0xE0 && data[i] <= 0xEF {
-			if i+2 >= len(data) || data[i+1] < 0x80 || data[i+1] > 0xBF || data[i+2] < 0x80 || data[i+2] > 0xBF {
-				return "", io.ErrUnexpectedEOF
-			}
-			i += 3
-		} else if data[i] >= 0xF0 && data[i] <= 0xF7 {
-			if i+3 >= len(data) || data[i+1] < 0x80 || data[i+1] > 0xBF || data[i+2] < 0x80 || data[i+2] > 0xBF || data[i+3] < 0x80 || data[i+3] > 0xBF {
-				return "", io.ErrUnexpectedEOF
-			}
-			i += 4
-		} else {
-			return "", io.ErrUnexpectedEOF
-		}
+	// Use standard library for UTF-8 validation
+	if !utf8.Valid(data) {
+		return "", io.ErrUnexpectedEOF
 	}
 	return string(data), nil
 }

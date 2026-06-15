@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/smathsp/mijia-api/internal/crypto"
 	"github.com/smathsp/mijia-api/internal/errors"
@@ -30,11 +32,9 @@ func (c *Client) DoRequest(uri string, data interface{}, refreshToken bool) (int
 	if err != nil {
 		return nil, err
 	}
-	// Compact JSON (remove spaces)
-	compact := strings.NewReplacer(" ", "", "\n", "", "\r", "", "\t", "").Replace(string(jsonData))
 
 	params := map[string]string{
-		"data": compact,
+		"data": string(jsonData),
 	}
 
 	nonce, err := crypto.Nonce()
@@ -55,8 +55,11 @@ func (c *Client) DoRequest(uri string, data interface{}, refreshToken bool) (int
 		form.Set(k, v)
 	}
 
-	// Create request
-	req, err := http.NewRequest("POST", fullURL, strings.NewReader(form.Encode()))
+	// Create request with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", fullURL, strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}

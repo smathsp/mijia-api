@@ -132,6 +132,11 @@ func (c *Client) PollLogin() (*AuthData, error) {
 		}
 	}
 
+	// Verify we have a service token
+	if c.AuthData.ServiceToken == "" {
+		return nil, &errors.LoginError{Code: -1, Message: "未获取到 serviceToken"}
+	}
+
 	c.AuthData.ExpireTime = time.Now().Add(30 * 24 * time.Hour).UnixMilli()
 	c.pendingLoginData = nil
 
