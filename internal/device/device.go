@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Do1e/mijia-api/internal/api"
-	"github.com/Do1e/mijia-api/internal/errors"
-	"github.com/Do1e/mijia-api/internal/logger"
+	"github.com/smathsp/mijia-api/internal/api"
+	"github.com/smathsp/mijia-api/internal/errors"
+	"github.com/smathsp/mijia-api/internal/logger"
 )
 
 // Device represents a Xiaomi Mijia device.

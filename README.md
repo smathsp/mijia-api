@@ -2,7 +2,7 @@
 
 小米米家设备的 API，可以使用代码直接控制米家设备。Go 语言实现，单二进制文件，零依赖。
 
-[![GitHub](https://img.shields.io/badge/GitHub-Do1e%2Fmijia--api-blue)](https://github.com/Do1e/mijia-api)
+[![GitHub](https://img.shields.io/badge/GitHub-Do1e%2Fmijia--api-blue)](https://github.com/smathsp/mijia-api)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-green.svg)](https://opensource.org/licenses/GPL-3.0)
 
 常见问题见 [FAQ.md](FAQ.md)。
@@ -19,7 +19,7 @@
 ### 从源码构建
 
 ```bash
-git clone https://github.com/Do1e/mijia-api.git
+git clone https://github.com/smathsp/mijia-api.git
 cd mijia-api
 go build -o mijia-api ./cmd/mijia
 ```
@@ -134,7 +134,7 @@ MIJIA_LOG_LEVEL=DEBUG ./mijia-api --list-devices
 在路由器上执行：
 
 ```bash
-curl -sL https://raw.githubusercontent.com/Do1e/mijia-api/main/scripts/update.sh | bash
+curl -sL https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | bash
 ```
 
 脚本会自动：
@@ -169,8 +169,8 @@ scp ~/.config/mijia-api/auth.json root@192.168.1.1:~/.config/mijia-api/auth.json
 cd /tmp
 
 # 下载最新版本（以 aarch64 为例）
-VERSION=$(curl -s https://api.github.com/repos/Do1e/mijia-api/releases/latest | grep tag_name | cut -d '"' -f 4)
-wget https://github.com/Do1e/mijia-api/releases/download/${VERSION}/mijia-api-linux-arm64
+VERSION=$(curl -s https://api.github.com/repos/smathsp/mijia-api/releases/latest | grep tag_name | cut -d '"' -f 4)
+wget https://github.com/smathsp/mijia-api/releases/download/${VERSION}/mijia-api-linux-arm64
 
 # 安装
 chmod +x mijia-api-linux-arm64
@@ -182,7 +182,7 @@ mv mijia-api-linux-arm64 /usr/bin/mijia-api
 已安装后，运行更新脚本即可升级到最新版本：
 
 ```bash
-curl -sL https://raw.githubusercontent.com/Do1e/mijia-api/main/scripts/update.sh | bash
+curl -sL https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | bash
 ```
 
 ### 在路由器上使用

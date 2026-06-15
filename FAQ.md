@@ -11,7 +11,7 @@
 
 ## XXX设备的XXX如何获取/设置？
 
-我拥有的设备有限，无法保证能解答这类问题，但也欢迎提交 [issue](https://github.com/Do1e/mijia-api/issues)，可能需要你将设备共享给我进行抓包或者自行抓包给我提供请求和响应，提供har文件的话注意自行删除cookie等敏感信息。
+我拥有的设备有限，无法保证能解答这类问题，但也欢迎提交 [issue](https://github.com/smathsp/mijia-api/issues)，可能需要你将设备共享给我进行抓包或者自行抓包给我提供请求和响应，提供har文件的话注意自行删除cookie等敏感信息。
 
 ## 如何抓包？
 

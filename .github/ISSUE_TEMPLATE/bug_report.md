@@ -12,9 +12,9 @@ assignees: ''
 
 如何提交一个有效的Bug报告：
 
-1. **确保这是一个Bug**：请先查阅[已知问题](https://github.com/Do1e/mijia-api/issues?q=is%3Aissue%20label%3Awontfix)，确认您的问题不是已知的问题或是配置不当造成的。
+1. **确保这是一个Bug**：请先查阅[已知问题](https://github.com/smathsp/mijia-api/issues?q=is%3Aissue%20label%3Awontfix)，确认您的问题不是已知的问题或是配置不当造成的。
 2. **尝试重现问题**：在不同的环境或条件下尝试重现此问题，以确定是否总是发生。
-3. **搜索现有问题**：查看现有的[Issue列表](https://github.com/Do1e/mijia-api/issues)，确认这个问题还没有被报告过。
+3. **搜索现有问题**：查看现有的[Issue列表](https://github.com/smathsp/mijia-api/issues)，确认这个问题还没有被报告过。
 4. **提供详细信息**：
    - 您的操作系统和版本。
    - Python版本。

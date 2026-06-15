@@ -1,10 +1,10 @@
 #!/bin/bash
 # mijia-api 路由器自动更新脚本
-# 用法: curl -sL https://raw.githubusercontent.com/Do1e/mijia-api/main/scripts/update.sh | bash
+# 用法: curl -sL https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | bash
 
 set -e
 
-REPO="Do1e/mijia-api"
+REPO="smathsp/mijia-api"
 BINARY_NAME="mijia-api"
 INSTALL_DIR="/usr/bin"
 AUTH_DIR="$HOME/.config/mijia-api"

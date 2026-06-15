@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/Do1e/mijia-api/internal/crypto"
-	"github.com/Do1e/mijia-api/internal/errors"
-	"github.com/Do1e/mijia-api/internal/logger"
+	"github.com/smathsp/mijia-api/internal/crypto"
+	"github.com/smathsp/mijia-api/internal/errors"
+	"github.com/smathsp/mijia-api/internal/logger"
 )
 
 // DoRequest performs an encrypted API request.
