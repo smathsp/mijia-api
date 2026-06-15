@@ -66,14 +66,14 @@ func (c *Client) GetQRLink() (string, error) {
 		return "", err
 	}
 
-	qrImage, _ := loginData["qr"].(string)
+	loginURL, _ := loginData["loginUrl"].(string)
 
 	// Store lpURL and other data for later polling
 	c.pendingLoginData = loginData
 
 	logger.Debug("QR login data: %v", loginData)
 
-	return qrImage, nil
+	return loginURL, nil
 }
 
 // PollLogin waits for the user to scan the QR code.
