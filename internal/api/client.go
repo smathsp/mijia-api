@@ -33,6 +33,9 @@ type Client struct {
 	passO              string
 	userAgent          string
 	deviceID           string
+
+	// Pending login data for GetQRLink/PollLogin flow
+	pendingLoginData map[string]interface{}
 }
 
 // AuthData holds authentication credentials.

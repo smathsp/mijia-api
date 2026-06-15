@@ -15,7 +15,7 @@ import (
 	"github.com/smathsp/mijia-api/internal/logger"
 )
 
-const version = "4.0.0"
+const version = "4.0.1"
 
 func main() {
 	// Global flags
@@ -26,6 +26,7 @@ func main() {
 	listConsumable := flag.Bool("list-consumable-items", false, "列出耗材列表")
 	getDeviceInfo := flag.String("get-device-info", "", "获取设备信息，指定设备model")
 	showVersion := flag.Bool("version", false, "显示版本信息并退出")
+	login := flag.Bool("login", false, "获取登录二维码链接（不阻塞）")
 
 	logLevel := os.Getenv("MIJIA_LOG_LEVEL")
 	if logLevel != "" {
@@ -54,6 +55,12 @@ func main() {
 	// Handle --get-device-info (no auth needed)
 	if *getDeviceInfo != "" {
 		handleGetDeviceInfo(*getDeviceInfo)
+		return
+	}
+
+	// Handle --login (no auth needed, just get QR link)
+	if *login {
+		handleLogin(*authPath)
 		return
 	}
 
@@ -128,6 +135,40 @@ func handleGetDeviceInfo(model string) {
 	}
 	data, _ := json.MarshalIndent(info, "", "  ")
 	fmt.Println(string(data))
+}
+
+func handleLogin(authPath string) {
+	client, err := api.NewClient(authPath)
+	if err != nil {
+		logger.Fatal("创建客户端失败: %v", err)
+	}
+
+	// Check if already logged in
+	if client.Available() {
+		fmt.Println("已登录，无需重新登录")
+		return
+	}
+
+	// Try to refresh token first
+	_, err = client.RefreshToken()
+	if err == nil {
+		fmt.Println("Token 刷新成功")
+		return
+	}
+
+	// Need QR login - get the login page
+	qrLink, err := client.GetQRLink()
+	if err != nil {
+		logger.Fatal("获取登录链接失败: %v", err)
+	}
+
+	if qrLink == "" {
+		fmt.Println("已登录，无需重新登录")
+		return
+	}
+
+	fmt.Println("请用米家 APP 扫描登录：")
+	fmt.Println(qrLink)
 }
 
 func handleListDevices(api *api.Client, verbose bool) map[string]map[string]interface{} {

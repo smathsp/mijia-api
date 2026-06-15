@@ -20,6 +20,127 @@ func (c *Client) Login() (*AuthData, error) {
 	return c.QRLogin()
 }
 
+// GetQRLink returns the QR login URL without blocking.
+// Use this for agents that need to show the QR link to users.
+func (c *Client) GetQRLink() (string, error) {
+	// Step 1: Get login location
+	locationData, err := c.getLocation()
+	if err != nil {
+		return "", err
+	}
+
+	// Check if token is still valid
+	if code, ok := locationData["code"]; ok && code == "0" {
+		if msg, ok := locationData["message"]; ok && msg == "刷新Token成功" {
+			if err := c.SaveAuthData(); err != nil {
+				return "", err
+			}
+			return "", nil // Already logged in
+		}
+	}
+
+	// Step 2: Get QR code URL
+	locationData["theme"] = ""
+	locationData["bizDeviceType"] = ""
+	locationData["_hasLogo"] = "false"
+	locationData["_qrsize"] = "240"
+	locationData["_dc"] = fmt.Sprintf("%d", time.Now().UnixMilli())
+
+	qrURL := c.LoginURL + "?" + encodeValues(locationData)
+
+	headers := map[string]string{
+		"User-Agent":      c.UserAgent(),
+		"Accept-Encoding": "identity",
+		"Content-Type":    "application/x-www-form-urlencoded",
+		"Connection":      "keep-alive",
+	}
+
+	resp, err := c.doGet(qrURL, headers)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	loginData, err := c.handleRet(resp, true)
+	if err != nil {
+		return "", err
+	}
+
+	qrImage, _ := loginData["qr"].(string)
+
+	// Store lpURL and other data for later polling
+	c.pendingLoginData = loginData
+
+	return qrImage, nil
+}
+
+// PollLogin waits for the user to scan the QR code.
+// Call this after GetQRLink and the user has scanned.
+func (c *Client) PollLogin() (*AuthData, error) {
+	if c.pendingLoginData == nil {
+		return nil, &errors.LoginError{Code: -1, Message: "没有待处理的登录请求，请先调用 GetQRLink"}
+	}
+
+	loginData := c.pendingLoginData
+	lpURL, _ := loginData["lp"].(string)
+
+	headers := map[string]string{
+		"User-Agent":      c.UserAgent(),
+		"Accept-Encoding": "identity",
+		"Content-Type":    "application/x-www-form-urlencoded",
+		"Connection":      "keep-alive",
+	}
+
+	// Long poll for login
+	lpResp, err := c.doGetWithTimeout(lpURL, headers, 120*time.Second)
+	if err != nil {
+		return nil, &errors.LoginError{Code: -1, Message: "超时，请重试"}
+	}
+	defer lpResp.Body.Close()
+
+	lpData, err := c.handleRet(lpResp, true)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract auth keys
+	authKeys := []string{"psecurity", "nonce", "ssecurity", "passToken", "userId", "cUserId"}
+	for _, key := range authKeys {
+		if val, ok := lpData[key]; ok {
+			switch v := val.(type) {
+			case string:
+				setAuthField(c.AuthData, key, v)
+			case float64:
+				setAuthField(c.AuthData, key, fmt.Sprintf("%d", int64(v)))
+			}
+		}
+	}
+
+	// Get service token from cookies
+	callbackURL, _ := lpData["location"].(string)
+	if callbackURL != "" {
+		cbResp, err := c.doGet(callbackURL, headers)
+		if err == nil {
+			defer cbResp.Body.Close()
+			for _, cookie := range cbResp.Cookies() {
+				if cookie.Name == "serviceToken" {
+					c.AuthData.ServiceToken = cookie.Value
+				}
+			}
+		}
+	}
+
+	c.AuthData.ExpireTime = time.Now().Add(30 * 24 * time.Hour).UnixMilli()
+	c.pendingLoginData = nil
+
+	if err := c.SaveAuthData(); err != nil {
+		return nil, err
+	}
+
+	logger.Info("登录成功")
+	return c.AuthData, nil
+}
+
 // QRLogin performs QR code login flow.
 func (c *Client) QRLogin() (*AuthData, error) {
 	// Step 1: Get login location
