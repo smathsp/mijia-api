@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 # mijia-api 路由器自动更新脚本
-# 用法: curl -sL https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | bash
-
-set -e
+# 用法: wget -qO- https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | sh
 
 REPO="smathsp/mijia-api"
 BINARY_NAME="mijia-api"
@@ -31,7 +29,7 @@ detect_arch() {
 
 # 获取最新版本
 get_latest_version() {
-    curl -s "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name"' | cut -d '"' -f 4
+    wget -qO- "https://api.github.com/repos/$REPO/releases/latest" | grep '"tag_name"' | cut -d '"' -f 4
 }
 
 # 下载二进制
@@ -50,7 +48,7 @@ download_binary() {
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/${version}/${FILENAME}"
 
     echo "下载 $DOWNLOAD_URL ..."
-    curl -sL "$DOWNLOAD_URL" -o "/tmp/$BINARY_NAME"
+    wget -q "$DOWNLOAD_URL" -O "/tmp/$BINARY_NAME"
     chmod +x "/tmp/$BINARY_NAME"
 }
 
@@ -62,8 +60,10 @@ install_binary() {
     if [ -w "$INSTALL_DIR" ]; then
         cp "/tmp/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
     else
-        echo "需要 sudo 权限安装..."
-        sudo cp "/tmp/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME"
+        echo "需要 root 权限安装..."
+        su -c "cp /tmp/$BINARY_NAME $INSTALL_DIR/$BINARY_NAME" root 2>/dev/null || \
+        sudo cp "/tmp/$BINARY_NAME" "$INSTALL_DIR/$BINARY_NAME" 2>/dev/null || \
+        echo "安装失败，请手动执行: cp /tmp/$BINARY_NAME $INSTALL_DIR/$BINARY_NAME"
     fi
 
     rm -f "/tmp/$BINARY_NAME"
@@ -73,7 +73,7 @@ install_binary() {
 check_auth() {
     if [ ! -f "$AUTH_DIR/auth.json" ]; then
         echo ""
-        echo "⚠️  未找到认证文件: $AUTH_DIR/auth.json"
+        echo "⚠  未找到认证文件: $AUTH_DIR/auth.json"
         echo "首次使用需要登录:"
         echo "  $BINARY_NAME --list-devices"
         echo ""
@@ -93,18 +93,18 @@ main() {
     echo "获取最新版本..."
     VERSION=$(get_latest_version)
     if [ -z "$VERSION" ]; then
-        echo "❌ 无法获取最新版本"
+        echo "无法获取最新版本"
         exit 1
     fi
     echo "最新版本: $VERSION"
 
     # 检查当前版本
-    if command -v "$BINARY_NAME" &> /dev/null; then
+    if command -v "$BINARY_NAME" > /dev/null 2>&1; then
         CURRENT_VERSION=$("$BINARY_NAME" --version 2>&1 | awk '{print $2}')
         echo "当前版本: $CURRENT_VERSION"
 
         if [ "$CURRENT_VERSION" = "$VERSION" ]; then
-            echo "✅ 已是最新版本，无需更新"
+            echo "已是最新版本，无需更新"
             check_auth
             exit 0
         fi
@@ -115,12 +115,18 @@ main() {
     install_binary
 
     echo ""
-    echo "✅ 更新完成!"
+    echo "更新完成!"
     echo "版本: $VERSION"
     echo "安装路径: $INSTALL_DIR/$BINARY_NAME"
     echo ""
 
     check_auth
+
+    # 显示版本
+    if command -v "$BINARY_NAME" > /dev/null 2>&1; then
+        VERSION=$("$BINARY_NAME" --version 2>&1)
+        echo "当前版本: $VERSION"
+    fi
 
     # 显示帮助
     echo "使用方法:"
