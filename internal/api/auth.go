@@ -71,6 +71,8 @@ func (c *Client) GetQRLink() (string, error) {
 	// Store lpURL and other data for later polling
 	c.pendingLoginData = loginData
 
+	logger.Debug("QR login data: %v", loginData)
+
 	return qrImage, nil
 }
 
