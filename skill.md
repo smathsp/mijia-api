@@ -27,29 +27,28 @@ test -f ~/.config/mijia-api/auth.json && echo "已登录" || echo "未登录"
 
 ### 未登录时
 
-执行以下命令获取登录链接：
+**步骤 1：后台启动登录进程**
 
 ```bash
-mijia-api --list-devices 2>&1
+nohup mijia-api --list-devices > /tmp/mijia-login.log 2>&1 &
+sleep 2
+cat /tmp/mijia-login.log
 ```
+
+**步骤 2：从日志中提取二维码链接**
 
 从输出中找到 `也可以访问链接查看二维码图片:` 后面的 URL。
 
-**将 URL 转换为 QR 码图片展示给用户：**
-
-使用 QR 码 API 生成图片：
-```
-https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=[URL]
-```
+**步骤 3：将链接展示给用户**
 
 告诉用户：
 ```
 请用米家 APP 扫描登录：
-[QR码图片URL]
+[URL]
 扫码完成后告诉我。
 ```
 
-### 验证登录
+**步骤 4：验证登录**
 
 用户说扫完了，执行验证：
 
