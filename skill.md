@@ -14,46 +14,43 @@ description: 控制小米/米家智能家居设备。当用户想要开关设备
 如果 mijia-api 未安装，自动执行：
 
 ```bash
-curl -sL https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | bash
+wget -qO- https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | sh
 ```
 
 ## 登录流程
 
 认证文件路径：`~/.config/mijia-api/auth.json`
 
-**如果认证文件不存在，需要用户扫码登录。按以下步骤操作：**
+**如果认证文件不存在，需要用户扫码登录。**
 
-### 步骤 1：获取二维码链接
-
-执行命令获取登录链接（会很快返回）：
+### 检查是否已登录
 
 ```bash
-mijia-api --list-devices 2>&1 | head -5
+test -f ~/.config/mijia-api/auth.json && echo "已登录" || echo "未登录"
 ```
 
-从输出中提取二维码链接，展示给用户：
+### 未登录时的处理
 
+执行以下命令会输出二维码链接，然后等待扫码（会阻塞约 120 秒）：
+
+```bash
+mijia-api --list-devices
 ```
-请用米家 APP 扫描登录：
-[二维码链接]
-```
 
-### 步骤 2：等待用户扫码
+**处理方式：**
+1. 执行命令
+2. 从输出中找到 `也可以访问链接查看二维码图片:` 后面的 URL
+3. 将 URL 展示给用户，让用户用米家 APP 扫描
+4. 告诉用户：扫码完成后告诉我，我来验证登录是否成功
+5. 如果命令超时，重新执行验证命令
 
-告诉用户：扫码完成后告诉我，我来验证登录是否成功。
-
-**不要等待命令完成，直接告诉用户扫码。**
-
-### 步骤 3：验证登录
-
-用户说扫完了，执行命令验证：
+### 验证登录
 
 ```bash
 mijia-api --list-devices
 ```
 
 如果成功输出设备列表，说明登录成功。
-如果失败，让用户重新扫码。
 
 ## 使用方式
 
