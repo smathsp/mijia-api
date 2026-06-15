@@ -30,7 +30,7 @@ func (c *Client) GetQRLink() (string, error) {
 	}
 
 	// Check if token is still valid
-	if code, ok := locationData["code"]; ok && code == "0" {
+	if locationData["code"] == "0" {
 		if msg, ok := locationData["message"]; ok && msg == "刷新Token成功" {
 			if err := c.SaveAuthData(); err != nil {
 				return "", err
@@ -157,7 +157,7 @@ func (c *Client) QRLogin() (*AuthData, error) {
 	}
 
 	// Check if token is still valid
-	if code, ok := locationData["code"]; ok && code == "0" {
+	if locationData["code"] == "0" {
 		if msg, ok := locationData["message"]; ok && msg == "刷新Token成功" {
 			if err := c.SaveAuthData(); err != nil {
 				return nil, err
@@ -263,7 +263,7 @@ func (c *Client) RefreshToken() (*AuthData, error) {
 		return nil, err
 	}
 
-	if code, ok := locationData["code"]; ok && code == "0" {
+	if locationData["code"] == "0" {
 		if msg, ok := locationData["message"]; ok && msg == "刷新Token成功" {
 			if err := c.SaveAuthData(); err != nil {
 				return nil, err
@@ -301,7 +301,7 @@ func (c *Client) getLocation() (map[string]string, error) {
 
 	location, _ := serviceData["location"].(string)
 
-	if code, ok := serviceData["code"]; ok && code == "0" {
+	if code, ok := serviceData["code"].(float64); ok && code == 0 {
 		// Token refresh flow
 		req, err := http.NewRequest("GET", location, nil)
 		if err != nil {
