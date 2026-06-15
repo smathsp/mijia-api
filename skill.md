@@ -17,13 +17,43 @@ description: 控制小米/米家智能家居设备。当用户想要开关设备
 curl -sL https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | bash
 ```
 
-## 登录
+## 登录流程
 
-如果认证文件不存在，自动执行登录命令，将二维码链接展示给用户扫码：
+认证文件路径：`~/.config/mijia-api/auth.json`
+
+**如果认证文件不存在，需要用户扫码登录。按以下步骤操作：**
+
+### 步骤 1：获取二维码链接
+
+执行命令获取登录链接（会很快返回）：
+
+```bash
+mijia-api --list-devices 2>&1 | head -5
+```
+
+从输出中提取二维码链接，展示给用户：
+
+```
+请用米家 APP 扫描登录：
+[二维码链接]
+```
+
+### 步骤 2：等待用户扫码
+
+告诉用户：扫码完成后告诉我，我来验证登录是否成功。
+
+**不要等待命令完成，直接告诉用户扫码。**
+
+### 步骤 3：验证登录
+
+用户说扫完了，执行命令验证：
 
 ```bash
 mijia-api --list-devices
 ```
+
+如果成功输出设备列表，说明登录成功。
+如果失败，让用户重新扫码。
 
 ## 使用方式
 
@@ -58,13 +88,6 @@ mijia-api get --did "设备ID" --prop-name "on"
 mijia-api --get-device-info "设备型号"
 ```
 
-## 工作流程
-
-1. 检查是否已安装，未安装则自动安装
-2. 检查是否已登录，未登录则自动触发登录
-3. 根据用户需求执行相应命令
-4. 将结果返回给用户
-
 ## 常见设备属性
 
 | 设备类型 | 属性 | 说明 | 值范围 |
@@ -83,8 +106,9 @@ mijia-api --get-device-info "设备型号"
 删除认证文件重新登录：
 ```bash
 rm ~/.config/mijia-api/auth.json
-mijia-api --list-devices
 ```
+
+然后按登录流程重新操作。
 
 ### 找不到设备
 
