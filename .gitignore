@@ -11,6 +11,7 @@ wheels/
 
 # data
 .mijia-api-data/
+auth.json
 
 # vscode debug
 .vscode/launch.json
