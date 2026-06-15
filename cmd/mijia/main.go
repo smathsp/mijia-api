@@ -156,28 +156,8 @@ func handleLogin(authPath string) {
 		return
 	}
 
-	// Need QR login - get the login page
-	qrLink, err := client.GetQRLink()
-	if err != nil {
-		logger.Fatal("获取登录链接失败: %v", err)
-	}
-
-	if qrLink == "" {
-		fmt.Println("已登录，无需重新登录")
-		return
-	}
-
-	fmt.Println("请用米家 APP 扫描登录：")
-	fmt.Println(qrLink)
-	fmt.Println("")
-	fmt.Println("扫码完成后按回车键继续...")
-
-	// Wait for user to scan
-	var input string
-	fmt.Scanln(&input)
-
-	// Complete the login
-	_, err = client.PollLogin()
+	// Run full QR login flow (prints QR link and waits for scan)
+	_, err = client.Login()
 	if err != nil {
 		fmt.Printf("登录失败: %v\n", err)
 		return
