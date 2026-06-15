@@ -11,8 +11,6 @@ description: 控制小米/米家智能家居设备。当用户想要开关设备
 
 ## 安装
 
-检查是否已安装：
-
 ```bash
 which mijia-api || wget -qO- https://raw.githubusercontent.com/smathsp/mijia-api/main/scripts/update.sh | sh
 ```
@@ -53,17 +51,17 @@ cat /tmp/mijia-login.log
 用户说扫完了，执行：
 
 ```bash
-mijia-api --list-devices
+mijia-api --list-devices --json
 ```
 
-成功输出设备列表即登录成功。
+成功输出设备 JSON 即登录成功。
 
 ## 设备操作
 
-### 列出设备
+### 列出设备（JSON 格式）
 
 ```bash
-mijia-api --list-devices
+mijia-api --list-devices --json
 ```
 
 ### 获取设备属性
@@ -100,7 +98,7 @@ mijia-api set --did "709063446" --prop-name "brightness" --value 50
 mijia-api get --did "709063446" --prop-name "brightness"
 
 # 列出家庭
-mijia-api --list-homes
+mijia-api --list-homes --json
 ```
 
 ## 常见属性

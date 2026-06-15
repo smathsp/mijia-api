@@ -15,7 +15,7 @@ import (
 	"github.com/smathsp/mijia-api/internal/logger"
 )
 
-const version = "4.0.2"
+const version = "4.0.3"
 
 func main() {
 	// Global flags
@@ -26,7 +26,7 @@ func main() {
 	listConsumable := flag.Bool("list-consumable-items", false, "列出耗材列表")
 	getDeviceInfo := flag.String("get-device-info", "", "获取设备信息，指定设备model")
 	showVersion := flag.Bool("version", false, "显示版本信息并退出")
-	getQR := flag.Bool("get-qr", false, "获取登录二维码链接（不阻塞，快速返回）")
+	jsonOutput := flag.Bool("json", false, "JSON 格式输出")
 
 	logLevel := os.Getenv("MIJIA_LOG_LEVEL")
 	if logLevel != "" {
@@ -58,12 +58,6 @@ func main() {
 		return
 	}
 
-	// Handle --get-qr (no auth needed, just get QR link)
-	if *getQR {
-		handleGetQR(*authPath)
-		return
-	}
-
 	// Handle subcommands
 	args := flag.Args()
 	if len(args) == 0 {
@@ -74,16 +68,16 @@ func main() {
 			homeMapping := make(map[string]map[string]interface{})
 
 			if *listDevices {
-				deviceMapping = handleListDevices(api, true)
+				deviceMapping = handleListDevices(api, true, *jsonOutput)
 			}
 			if *listHomes {
-				homeMapping = handleListHomes(api, true, deviceMapping)
+				homeMapping = handleListHomes(api, true, deviceMapping, *jsonOutput)
 			}
 			if *listScenes {
-				handleListScenes(api, true, homeMapping)
+				handleListScenes(api, true, homeMapping, *jsonOutput)
 			}
 			if *listConsumable {
-				handleListConsumable(api, homeMapping)
+				handleListConsumable(api, homeMapping, *jsonOutput)
 			}
 			return
 		}
@@ -137,39 +131,6 @@ func handleGetDeviceInfo(model string) {
 	fmt.Println(string(data))
 }
 
-func handleGetQR(authPath string) {
-	client, err := api.NewClient(authPath)
-	if err != nil {
-		logger.Fatal("创建客户端失败: %v", err)
-	}
-
-	// Check if already logged in
-	if client.Available() {
-		fmt.Println("已登录")
-		return
-	}
-
-	// Try to refresh token first
-	_, err = client.RefreshToken()
-	if err == nil {
-		fmt.Println("已登录")
-		return
-	}
-
-	// Get QR link (fast, no blocking)
-	qrLink, err := client.GetQRLink()
-	if err != nil {
-		logger.Fatal("获取登录链接失败: %v", err)
-	}
-
-	if qrLink == "" {
-		fmt.Println("已登录")
-		return
-	}
-
-	fmt.Println(qrLink)
-}
-
 func handleLogin(authPath string) {
 	client, err := api.NewClient(authPath)
 	if err != nil {
@@ -199,7 +160,7 @@ func handleLogin(authPath string) {
 	fmt.Println("登录成功！")
 }
 
-func handleListDevices(api *api.Client, verbose bool) map[string]map[string]interface{} {
+func handleListDevices(api *api.Client, verbose bool, jsonOut bool) map[string]map[string]interface{} {
 	devices, _ := api.GetDevicesListAll()
 	shared, _ := api.GetSharedDevicesList()
 	devices = append(devices, shared...)
@@ -210,7 +171,10 @@ func handleListDevices(api *api.Client, verbose bool) map[string]map[string]inte
 		deviceMapping[did] = d
 	}
 
-	if verbose {
+	if jsonOut {
+		data, _ := json.MarshalIndent(devices, "", "  ")
+		fmt.Println(string(data))
+	} else if verbose {
 		fmt.Println("设备列表:")
 		for _, d := range devices {
 			name, _ := d["name"].(string)
@@ -224,7 +188,7 @@ func handleListDevices(api *api.Client, verbose bool) map[string]map[string]inte
 	return deviceMapping
 }
 
-func handleListHomes(api *api.Client, verbose bool, deviceMapping map[string]map[string]interface{}) map[string]map[string]interface{} {
+func handleListHomes(api *api.Client, verbose bool, deviceMapping map[string]map[string]interface{}, jsonOut bool) map[string]map[string]interface{} {
 	homes, _ := api.GetHomesList()
 	homeMapping := make(map[string]map[string]interface{})
 
@@ -235,7 +199,7 @@ func handleListHomes(api *api.Client, verbose bool, deviceMapping map[string]map
 
 	if verbose {
 		if deviceMapping == nil {
-			deviceMapping = handleListDevices(api, false)
+			deviceMapping = handleListDevices(api, false, jsonOut)
 		}
 
 		fmt.Println("家庭列表:")
@@ -285,9 +249,9 @@ func handleListHomes(api *api.Client, verbose bool, deviceMapping map[string]map
 	return homeMapping
 }
 
-func handleListScenes(api *api.Client, verbose bool, homeMapping map[string]map[string]interface{}) map[string]map[string]interface{} {
+func handleListScenes(api *api.Client, verbose bool, homeMapping map[string]map[string]interface{}, jsonOut bool) map[string]map[string]interface{} {
 	if homeMapping == nil {
-		homeMapping = handleListHomes(api, false, nil)
+		homeMapping = handleListHomes(api, false, nil, jsonOut)
 	}
 
 	sceneMapping := make(map[string]map[string]interface{})
@@ -313,9 +277,9 @@ func handleListScenes(api *api.Client, verbose bool, homeMapping map[string]map[
 	return sceneMapping
 }
 
-func handleListConsumable(api *api.Client, homeMapping map[string]map[string]interface{}) {
+func handleListConsumable(api *api.Client, homeMapping map[string]map[string]interface{}, jsonOut bool) {
 	if homeMapping == nil {
-		homeMapping = handleListHomes(api, false, nil)
+		homeMapping = handleListHomes(api, false, nil, jsonOut)
 	}
 
 	for homeID, home := range homeMapping {
